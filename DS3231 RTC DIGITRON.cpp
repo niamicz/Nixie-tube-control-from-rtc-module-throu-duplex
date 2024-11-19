@@ -8,6 +8,20 @@ const int outputPinHour = 7;    // Výstup pro čítač hodin a desítky hodin
 const int outputPinnull = 5;    // Výstup pro nulování čítače
 const int duplexPin1 = 1;       // První duplexní pin (přepínání mezi sec/min a hour)
 const int duplexPin2 = 2;       // Druhý duplexní pin (antiparalelně)
+// Tlačítka
+const int button1Pin = 8; // Tlačítko pro přepínání režimů
+const int button2Pin = 9; // Tlačítko pro změnu hodnoty
+
+unsigned long button2HoldTime = 1000; // Doba podržení tlačítka 2 (ms)
+enum SettingMode { SECONDS, MINUTES, HOURS, NONE };
+SettingMode currentMode = NONE;
+byte second = 0, minute = 0, hour = 0;
+bool isEditing = false; // Indikace režimu úprav
+unsigned long lastButton1Press = 0;
+unsigned long lastButton2Press = 0;
+bool button2Held = false;
+
+
 const unsigned int duplexInterval = 5; // Interval přepínání duplex režimu (5 ms)
 const unsigned long blinkInterval = 60000; // Interval pro probliknutí všech hodnot
 unsigned long previousMillis = 0;           // Pro časování zobrazení času
@@ -27,15 +41,21 @@ byte bcdToDec(byte val) {
 }
 
 void setup() {
-    pinMode(outputPinSec, OUTPUT);
+      pinMode(outputPinSec, OUTPUT);
     pinMode(outputPinMin, OUTPUT);
     pinMode(outputPinHour, OUTPUT);
     pinMode(outputPinnull, OUTPUT);
     pinMode(duplexPin1, OUTPUT);  
     pinMode(duplexPin2, OUTPUT); 
-    //setDS3231time(20,29,18,3,12,11,24);       // To že to je komentář neznamená že by to tu nemělo být je to volání void setDS3231time přes void setup
+    pinMode(button1Pin, INPUT_PULLUP);
+    pinMode(button2Pin, INPUT_PULLUP);
+
+    //setDS3231time(20,29,18,3,12,11,24);       // Nastavení času (pouze příklad)
     Wire.begin();
     Serial.begin(9600);
+
+    byte dayOfWeek, dayOfMonth, month, year;  // Lokální proměnné pro chybějící argumenty
+    readDS3231time(second, minute, hour, dayOfWeek, dayOfMonth, month, year);
 
 }
 
@@ -52,6 +72,18 @@ void setDS3231time(byte second, byte minute, byte hour, byte dayOfWeek, byte day
     Wire.write(decToBcd(year));
     Wire.endTransmission();
 }
+
+void saveTimeToRTC() {
+    byte currentDayOfWeek = 1;  // Můžete doplnit aktuální hodnoty
+    byte currentDayOfMonth = 1; // Např. čtením z RTC při inicializaci
+    byte currentMonth = 1;
+    byte currentYear = 23;      // Rok 2023 (musí být přizpůsobeno)
+
+    // Aktualizace času do RTC
+    setDS3231time(second, minute, hour, currentDayOfWeek, currentDayOfMonth, currentMonth, currentYear);
+    Serial.println("Čas uložen do RTC!");
+}
+
 
 // Funkce pro čtení času z DS3231
 void readDS3231time(byte &second, byte &minute, byte &hour, byte &dayOfWeek, byte &dayOfMonth, byte &month, byte &year) {
@@ -238,49 +270,148 @@ void desetHodOutput() {
     }
 }
 
+// Probliknutí aktuálně nastavované hodnoty
+void blinkCurrentField() {
+    static unsigned long lastBlink = 0;
+    static bool blinkOn = true;
+
+    if (millis() - lastBlink > 500) {
+        lastBlink = millis();
+        blinkOn = !blinkOn;
+    }
+
+    if (blinkOn) {
+        displayTime();
+    } else {
+        switch (currentMode) {
+            case SECONDS: Serial.println("Sekundy blikají"); break;
+            case MINUTES: Serial.println("Minuty blikají"); break;
+            case HOURS: Serial.println("Hodiny blikají"); break;
+            default: break;
+        }
+    }
+}
+// Zpracování tlačítek
+void handleButtons() {
+    if (digitalRead(button1Pin) == LOW) {
+        delay(50); // Debounce
+        if (millis() - lastButton1Press > 300) {
+            lastButton1Press = millis();
+            handleButton1Press();
+        }
+    }
+
+    if (digitalRead(button2Pin) == LOW) {
+        if (!button2Held && millis() - lastButton2Press > button2HoldTime) {
+            button2Held = true;
+            handleButton2Hold();
+        }
+    } else {
+        if (button2Held) button2Held = false;
+        if (millis() - lastButton2Press > 300) {
+            lastButton2Press = millis();
+            handleButton2Press();
+        }
+    }
+}
+
+// Tlačítko 1: Přepnutí režimu
+void handleButton1Press() {
+    if (!isEditing) {
+        isEditing = true;
+        currentMode = SECONDS;
+    } else {
+        switch (currentMode) {
+            case SECONDS: currentMode = MINUTES; break;
+            case MINUTES: currentMode = HOURS; break;
+            case HOURS:
+                currentMode = NONE;
+                isEditing = false;
+                saveTimeToRTC();  // Uložit změny do RTC
+                break;
+            default: break;
+        }
+    }
+}
+
+// Tlačítko 2: Změna hodnoty
+void handleButton2Press() {
+    switch (currentMode) {
+        case SECONDS: second = (second + 1) % 60; break;
+        case MINUTES: minute = (minute + 1) % 60; break;
+        case HOURS: hour = (hour + 1) % 24; break;
+        default: break;
+    }
+}
+
+// Tlačítko 2: Rychlé přidávání
+void handleButton2Hold() {
+    switch (currentMode) {
+        case SECONDS: second = (second + 5) % 60; break;
+        case MINUTES: minute = (minute + 5) % 60; break;
+        case HOURS: hour = (hour + 1) % 24; break;
+        default: break;
+    }
+}
+
+
+
 void loop() {
     unsigned long currentMillis = millis();
     unsigned long duplexOffMillis = 0;
     
-    // Zobrazení času každou sekundu
-    if (currentMillis - previousMillis >= interval) {
-        previousMillis = currentMillis;
-        displayTime();
-    }
+handleButtons();
 
-    // Přepnutí duplexního režimu každých duplexInterval milisekund s off-time
-    if (currentMillis - previousDuplexMillis >= duplexInterval) {
-        previousDuplexMillis = currentMillis;
-
-        // Krátký off-time před přepnutím duplexních pinů
-        digitalWrite(duplexPin1, LOW);
-        digitalWrite(duplexPin2, LOW);
-        delay(0.5);
-        
-        duplex = !duplex;  // Přepnutí duplex mezi true a false
-        digitalWrite(duplexPin1, duplex ? HIGH : LOW);
-        digitalWrite(duplexPin2, duplex ? LOW : HIGH);
-    }
-
-    // Výstup pro sekundy a desítky sekund, minuty a desítky minut, hodiny a desítky hodin
-    if (duplex) {
-        secoutput();
-        minoutput();
-        hodoutput();
+    // Blikání aktuálně nastavovaného pole, pokud jsme v režimu editace
+    if (isEditing) {
+        blinkCurrentField();
     } else {
-        dessecoutput();
-        desetminoutput();
-        desetHodOutput();
+        // Zobrazení času každou sekundu
+        static unsigned long lastDisplayMillis = 0;
+        if (currentMillis - lastDisplayMillis >= 1000) {
+            lastDisplayMillis = currentMillis;
+            displayTime();
+        }
+
+        // Ovládání digitronů (přepínání mezi režimy sec/min/hour)
+        static unsigned long lastDuplexMillis = 0;
+        if (currentMillis - lastDuplexMillis >= duplexInterval) {
+            lastDuplexMillis = currentMillis;
+
+            // Krátký off-time před přepnutím duplexních pinů
+            digitalWrite(duplexPin1, LOW);
+            digitalWrite(duplexPin2, LOW);
+            delayMicroseconds(500);
+
+            // Přepnutí duplexního režimu
+            duplex = !duplex;
+            digitalWrite(duplexPin1, duplex ? HIGH : LOW);
+            digitalWrite(duplexPin2, duplex ? LOW : HIGH);
+        }
+
+        // Generování výstupů na digitrony
+        if (duplex) {
+            secoutput();
+            minoutput();
+            hodoutput();
+        } else {
+            dessecoutput();
+            desetminoutput();
+            desetHodOutput();
+        }
     }
+
+    
+
 
 // Zavolání probliknutí každých blinkInterval milisekund
-/*
+
     if (currentMillis - lastBlinkMillis >= blinkInterval) {
         lastBlinkMillis = currentMillis;                 
         problinuti(outputPinSec);
         problinuti(outputPinMin);
         problinuti(outputPinHour);
     }
-*/
+
 
 }
