@@ -7,7 +7,9 @@ Funkce
     Řízení pomocí čítačů: Generování pulsů odpovídajících číslicím sekund, minut a hodin.
     Duplexní režim: Efektivní multiplexování pro zobrazení více číslic s minimem hardwaru.
     Zobrazení na sériovém monitoru: Ladění a zpětná vazba v reálném čase pomocí sériového monitoru Arduina.
-    
+
+Video zobrazující fungování: https://youtube.com/shorts/OE9x49Hq_tQ?feature=share
+
 Konfigurace pinů
 Pin	Funkce
 9	Výstup pro sekundy a desítky sekund
