@@ -55,12 +55,12 @@ Klíčové funkce
 
 Příklad cyklu
 Cyklus	Akce	Pin	Pulsy	Poznámky
-1	Výstup jednotek sekund	outputPinSec	7	7 pulsů odpovídá 7 sekundám.
-	Výstup jednotek minut	outputPinMin	4	4 pulsy odpovídají 4 minutám.
-	Výstup jednotek hodin	outputPinHour	1	1 puls odpovídá 1 hodině.
-2	Výstup desítek sekund	outputPinSec	0	Desítky sekund = 0.
-	Výstup desítek minut	outputPinMin	3	3 pulsy pro desítky minut.
-	Výstup desítek hodin	outputPinHour	0	Desítky hodin = 0.
+1	Výstup jednotek sekund	outputPinSec	7,	7 pulsů odpovídá 7 sekundám.
+	Výstup jednotek minut	outputPinMin	4,	4 pulsy odpovídají 4 minutám.
+	Výstup jednotek hodin	outputPinHour	1,	1 puls odpovídá 1 hodině.
+2	Výstup desítek sekund	outputPinSec	0,	Desítky sekund = 0.
+	Výstup desítek minut	outputPinMin	3,	3 pulsy pro desítky minut.
+	Výstup desítek hodin	outputPinHour	0,	Desítky hodin = 0.
 
 Možnosti přizpůsobení
 
