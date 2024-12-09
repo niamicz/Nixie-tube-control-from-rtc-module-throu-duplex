@@ -5,9 +5,9 @@ Update 09.12.24: 	Zobrazení teploty z RTC DS3231, na digitronech pro jednotky a
 
 Ovládání digitronových hodin pomocí čítačů
 
-Tento projekt ukazuje, jak ovládat digitronové hodiny s použitím modulu reálného času DS3231 a vlastního systému výstupů řízených čítačem. Kód využívá Arduino pro přesné časování a generování signálů pro sekundy, minuty a hodiny. Projekt rovněž podporuje multiplexování (duplexní režim) pro efektivní využití pinů.
-Funkce
+Tento projekt ukazuje, jak ovládat digitronové hodiny s použitím modulu reálného času DS3231 a vlastního systému výstupů řízených čítačem GD40161B a dekodérem MH74141 TESLA Dekodér BCD na DEC DIL 16. Kód využívá Arduino pro přesné časování a generování signálů pro sekundy, minuty a hodiny. Projekt rovněž podporuje multiplexování (duplexní režim) pro efektivní využití pinů.
 
+Funkce:
     Integrace reálného času: Využití modulu DS3231 pro přesné měření času.
     Řízení pomocí čítačů: Generování pulsů odpovídajících číslicím sekund, minut a hodin.
     Duplexní režim: Efektivní multiplexování pro zobrazení více číslic s minimem hardwaru.
