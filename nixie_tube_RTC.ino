@@ -10,9 +10,9 @@ const int outputPinnull = 5;    // Výstup pro nulování čítače
 const int duplexPin1 = 13;       // První duplexní pin (přepínání mezi sec/min a hour)
 const int duplexPin2 = 12;       // Druhý duplexní pin (antiparalelně)
 
- const int inputpinmode = ?;
- const int inputpinbutton1 = ?;     // Tlačítko pro změnu režimu (sekundy, minuty, hodiny) 
- const int inputpinbutton2 = ?;     // Tlačítko pro inkrementaci hodnoty
+const int inputpinmode = ?;
+const int inputpinbutton1 = ?;     // Tlačítko pro změnu režimu (sekundy, minuty, hodiny) 
+const int inputpinbutton2 = ?;     // Tlačítko pro inkrementaci hodnoty
 
 const unsigned int duplexInterval = 4; // Interval přepínání duplex režimu (5 ms)
 const unsigned long blinkInterval = 60000; // Interval pro probliknutí všech hodnot
@@ -334,7 +334,8 @@ void teplfinal() {
 // Výstup pro jednotky teploty
 void jedtempout() {
     float temperature = readTemperature();
-    int secondDigit = temperature % 10;
+    int intTemp = static_cast<int>(temperature); // Převod na int číslo
+    int secondDigit = intTemp % 10;
 
     // Výstup pro jednotky teploty do čítače
     for (int i = 0; i < secondDigit; ++i) {
@@ -347,7 +348,8 @@ void jedtempout() {
 // Výstup pro desítky teploty do čitače
 void destempout() {
     float temperature = readTemperature();
-    int firstDigit = temperature / 10;
+    int intTemp = static_cast<int>(temperature); // Převod na int číslo
+    int firstDigit = intTemp / 10;
 
     // Výstup pro desítky sekund
     for (int i = 0; i < firstDigit; ++i) {
@@ -449,3 +451,9 @@ void loop() {
             dulpex pinu a ne jenom závislé na duplex pin
             */
 }
+
+
+
+
+// GS G27 GD40161B
+// TESLA x68 MH74141
