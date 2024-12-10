@@ -13,6 +13,16 @@ Funkce:
     Duplexní režim: Efektivní multiplexování pro zobrazení více číslic s minimem hardwaru.
     Zobrazení na sériovém monitoru: Ladění a zpětná vazba v reálném čase pomocí sériového monitoru Arduina.
 
+Inline-style: 
+![alt text]([https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png](https://github.com/niamicz/Nixie-tube-control-from-rtc-module-throu-duplex/blob/c87fecd21bcc16f3e9ba99452b2b24c6e841f6db/IMG_20241210_180029.jpg
+) "Logo Title Text 1")
+
+Reference-style: 
+![alt text][logo]
+
+[logo]: [https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png](https://github.com/niamicz/Nixie-tube-control-from-rtc-module-throu-duplex/blob/c87fecd21bcc16f3e9ba99452b2b24c6e841f6db/IMG_20241210_180029.jpg
+) "Logo Title Text 2"
+
 Video zobrazující fungování: https://youtube.com/shorts/OE9x49Hq_tQ?feature=share
 
 Konfigurace pinů
