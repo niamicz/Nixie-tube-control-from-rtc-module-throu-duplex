@@ -276,7 +276,7 @@ void vystuphodinfinal() {
     duplexzobrazeni1pul(zobcas1p);
 
     } else {
-        duplexzobrazeni1pul(zobcas2p);
+        duplexzobrazeni2pul(zobcas2p);
     }        
 }
 
@@ -363,7 +363,7 @@ void vystuptempfinal() {
     if (duplex) {
         duplexzobrazeni1pul(jedtempout);
     } else {
-        duplexzobrazeni1pul(destempout);    
+        duplexzobrazeni2pul(destempout);    
         }
 }
 
