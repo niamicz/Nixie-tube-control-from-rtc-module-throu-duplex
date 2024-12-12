@@ -15,11 +15,11 @@ const int inputpinbutton1 = ?;     // Tlačítko pro změnu režimu (sekundy, mi
 const int inputpinbutton2 = ?;     // Tlačítko pro inkrementaci hodnoty
 
 const unsigned int duplexInterval = 4; // Interval přepínání duplex režimu (5 ms)
-const unsigned long blinkInterval = 60000; // Interval pro probliknutí všech hodnot
+//const unsigned long blinkInterval = 60000; // Interval pro probliknutí všech hodnot
 unsigned long previousMillis = 0;           // Pro časování zobrazení času
 const long interval = 1000;                 // Interval 1 sekundy pro displayTime
 unsigned long previousDuplexMillis = 0;     // Pro časování přepnutí duplex režimu
-unsigned long lastBlinkMillis = 0;          // Pro časování volání probliknutí
+//unsigned long lastBlinkMillis = 0;          // Pro časování volání probliknutí      // nejpíše odstranit
 unsigned long previousTempMillis = 0;
 const long tempInterval = 5000;
 
@@ -122,6 +122,7 @@ void displayTime() {
 
 
 
+/*
 void problinuti(int outputPin) {
     unsigned long problikMillis = millis(); // Nastavení času pro probliknutí
     for (int i = 0; i <= 9; ++i) {
@@ -142,6 +143,7 @@ void problinuti(int outputPin) {
         problikMillis = millis();
     }
 }
+*/
 
 void duplexzobrazeni1pul(void (*funkce)()) {
     digitalWrite(duplexPin2, LOW);     
@@ -290,6 +292,7 @@ void displayTimefinal() {
     }
 }
 
+/*
 void probliknutifinal() {
     unsigned long currentMillis = millis();
     unsigned long duplexOffMillis = 0;
@@ -302,18 +305,27 @@ void probliknutifinal() {
         problinuti(outputPinHour);
     }
 }
+*/
 
 float readTemperature() {
-    Wire.beginTransmission(DS3231_I2C_ADDRESS);
-    Wire.write(0x11); 
-    Wire.endTransmission();
-    Wire.requestFrom(DS3231_I2C_ADDRESS, 2); 
+    unsigned long currentMillis = millis();
+    float temperature;
 
-    byte msb = Wire.read(); 
-    byte lsb = Wire.read();
+    if (currentMillis - previousTempMillis >= tempInterval) {
+        previousTempMillis = currentMillis;
+        
+        Wire.beginTransmission(DS3231_I2C_ADDRESS);
+        Wire.write(0x11); 
+        Wire.endTransmission();
+        Wire.requestFrom(DS3231_I2C_ADDRESS, 2); 
 
-    float temperature = msb + ((lsb >> 6) * 0.25);
-    return temperature;
+        byte msb = Wire.read(); 
+        byte lsb = Wire.read();
+
+        float temperature = msb + ((lsb >> 6) * 0.25);
+        return temperature;
+    }
+    
 }
 void sendTemperature() {
     float temperature = readTemperature();
@@ -333,6 +345,7 @@ void teplfinal() {
 }
 // Výstup pro jednotky teploty
 void jedtempout() {
+    
     float temperature = readTemperature();
     int intTemp = static_cast<int>(temperature); // Převod na int číslo
     int secondDigit = intTemp % 10;
@@ -429,6 +442,56 @@ void timeset() {
 }
 
 
+//testovací kód zobrazení čísel na začátku 
+void testDisplayAll() {
+    unsigned long startMillis = millis();
+    while (millis() - startMillis < 2000) {
+
+        digitalWrite(duplexPin1, LOW);
+        digitalWrite(duplexPin2, LOW);
+        digitalWrite(outputPinnull, LOW);
+        digitalWrite(outputPinnull, HIGH);
+
+        for (int i = 0; i <= 9; i++) {
+            for (int j = 0; j < i; j++) {
+                digitalWrite(outputPinSec, HIGH);
+                digitalWrite(outputPinSec, LOW);
+            }
+            for (int j = 0; j < i; j++) {
+                digitalWrite(outputPinMin, HIGH);
+                digitalWrite(outputPinMin, LOW);
+            }
+            for (int j = 0; j < i; j++) {
+                digitalWrite(outputPinHour, HIGH);
+                digitalWrite(outputPinHour, LOW);
+            }
+            delay(duplexInterval); 
+        }
+
+        digitalWrite(duplexPin1, HIGH);
+        digitalWrite(duplexPin2, LOW);
+        digitalWrite(outputPinnull, LOW);
+        digitalWrite(outputPinnull, HIGH);
+
+        for (int i = 0; i <= 9; i++) {
+            for (int j = 0; j < i; j++) {
+                digitalWrite(outputPinSec, HIGH);
+                digitalWrite(outputPinSec, LOW);
+            }
+            for (int j = 0; j < i; j++) {
+                digitalWrite(outputPinMin, HIGH);
+                digitalWrite(outputPinMin, LOW);
+            }
+            for (int j = 0; j < i; j++) {
+                digitalWrite(outputPinHour, HIGH);
+                digitalWrite(outputPinHour, LOW);
+            }
+            delay(duplexInterval); 
+        }
+    }
+}
+
+
 void loop() {
     unsigned long currentMillis = millis();
     unsigned long duplexOffMillis = 0;
@@ -440,6 +503,9 @@ void loop() {
     else if (digitalRead(inputpinmode) == LOW) {
         vystuphodinfinal();
     }
+
+    //testDisplayAll()      //Probliknutí všech čísel při spuštění zatím když vyvolám
+    //vystupdatumfinal()        // Zobrazení datumu na digitronech
 
     //displayTimefinal();       // Zobrazení na sériovém monitoru např přes usb
     //probliknutifinal();
@@ -457,3 +523,80 @@ void loop() {
 
 // GS G27 GD40161B
 // TESLA x68 MH74141
+
+void vystupdatumfinal() {
+    duplexcmd();
+
+    // Výstup pro sekundy a desítky sekund, minuty a desítky minut, hodiny a desítky hodin
+    if (duplex) {
+    duplexzobrazeni1pul(duplzobdat1);
+
+    } else {
+        duplexzobrazeni2pul(duplzobdat2);
+    }        
+}
+void duplzobdat1() {
+    rokoutput()
+    jedmonth()
+    jedday()
+}
+void duplzobdat2() {
+    desrokoutut()
+    desmonth()
+    desday()
+}
+
+void rokoutput() {
+    byte second, minute, hour, dayOfWeek, dayOfMonth, month, year;
+    readDS3231time(second, minute, hour, dayOfWeek, dayOfMonth, month, year);
+    int secondDigit = year % 10;
+    for (int i = 0; i < secondDigit; ++i) {
+        digitalWrite(outputPinSec, HIGH);
+        digitalWrite(outputPinSec, LOW);
+    }
+}
+void desrokoutut() {
+    byte second, minute, hour, dayOfWeek, dayOfMonth, month, year;
+    readDS3231time(second, minute, hour, dayOfWeek, dayOfMonth, month, year);
+    int firstDigit = year / 10;
+    for (int i = 0; i < firstDigit; ++i) {
+        digitalWrite(outputPinSec, HIGH);
+        digitalWrite(outputPinSec, LOW);
+    }
+}
+void jedmonth() {
+    byte second, minute, hour, dayOfWeek, dayOfMonth, month, year;
+    readDS3231time(second, minute, hour, dayOfWeek, dayOfMonth, month, year);
+    int secondDigit = month % 10;
+    for (int i = 0; i < secondDigit; ++i) {
+        digitalWrite(outputPinMin, HIGH);
+        digitalWrite(outputPinMin, LOW);
+    }
+}
+void desmonth() {
+    byte second, minute, hour, dayOfWeek, dayOfMonth, month, year;
+    readDS3231time(second, minute, hour, dayOfWeek, dayOfMonth, month, year);
+    int firstDigit = month / 10;
+    for (int i = 0; i < firstDigit; ++i) {
+        digitalWrite(outputPinMin, HIGH);
+        digitalWrite(outputPinMin, LOW);
+    }
+}
+void jedday() {
+    byte second, minute, hour, dayOfWeek, dayOfMonth, month, year;
+    readDS3231time(second, minute, hour, dayOfWeek, dayOfMonth, month, year);
+    int secondDigit = dayOfMonth % 10;
+    for (int i = 0; i < secondDigit; ++i) {
+        digitalWrite(outputPinHour, HIGH);
+        digitalWrite(outputPinHour, LOW);
+    }
+}
+void desday() {
+    byte second, minute, hour, dayOfWeek, dayOfMonth, month, year;
+    readDS3231time(second, minute, hour, dayOfWeek, dayOfMonth, month, year);
+    int firstDigit = dayOfMonth / 10;
+    for (int i = 0; i < firstDigit; ++i) {
+        digitalWrite(outputPinHour, HIGH);
+        digitalWrite(outputPinHour, LOW);
+    }
+}
