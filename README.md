@@ -25,6 +25,9 @@ Pin	Funkce
 13	Duplexní pin 1 (řízení multiplexu)
 12	Duplexní pin 2 (řízení multiplexu, antiparalelně)
 
+![Alt text](images/Snímek obrazovky_20241213_113815.png)
+
+
 Klíčové funkce
 1. Převod číslic
 
