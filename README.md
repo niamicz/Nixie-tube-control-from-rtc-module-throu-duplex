@@ -1,4 +1,5 @@
 Update 09.12.24: 	Zobrazení teploty z RTC DS3231, na digitronech pro jednotky a desítky sekund.
+https://photos.app.goo.gl/TktZfPCQ42x4kHXLA
 			Nastavení času pomocí 3 tlačítek.
 
 
